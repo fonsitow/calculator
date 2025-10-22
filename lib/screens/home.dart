@@ -443,7 +443,7 @@ class _HomeState extends State<Home> {
                         }
                       });
                     },
-                    icon: Icon(Icons.backspace),
+                    icon: Icon(Icons.backspace_outlined, size: 20,),
                     style: StylesButton().icon,
                   ),
                   IconButton.outlined(
@@ -480,6 +480,13 @@ class _HomeState extends State<Home> {
                           Expression exp = parser.parse(expresion);
                           ContextModel cm = ContextModel();
                           double result = exp.evaluate(EvaluationType.REAL, cm);
+
+                          // ✅ Verifica si el resultado es inválido
+                          if (result.isInfinite || result.isNaN) {
+                            errorFunction();
+                            return;
+                          }
+                          
                           _input.text = result.toString();
 
                           if (_input.text.endsWith('.0')) {
@@ -488,7 +495,23 @@ class _HomeState extends State<Home> {
                               _input.text.length - 2,
                             );
 
-                            guardarEnHistorial(expresion, _input.text);
+                            // ✅ Aquí defines la variable resultado
+                            String resultado = result.toString();
+
+                            // ✅ Formatea si termina en .0
+                            if (resultado.endsWith('.0')) {
+                              resultado = resultado.substring(
+                                0,
+                                resultado.length - 2,
+                              );
+                            }
+
+                            _input.text = resultado;
+                            _input.selection = TextSelection.fromPosition(
+                              TextPosition(offset: _input.text.length),
+                            );
+
+                            guardarEnHistorial(expresion, resultado);
                           }
                         } catch (e) {
                           errorFunction();

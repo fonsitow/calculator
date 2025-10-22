@@ -33,7 +33,7 @@ class StylesButton {
     ),
     elevation: WidgetStatePropertyAll(3),
     padding: WidgetStatePropertyAll(
-      EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+      EdgeInsets.symmetric(horizontal: 20, vertical: 20),
     ),
     iconSize: WidgetStatePropertyAll(24),
   );

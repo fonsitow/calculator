@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:calculator/components/appbar.dart';
 import 'package:calculator/components/drawer.dart';
 import 'package:calculator/models/tasa.dart';
+import 'package:calculator/models/tasa_previous.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -19,9 +20,10 @@ class _TasaCalculatorState extends State<TasaCalculator> {
   String monedaSeleccionada = 'USD';
   String? fechaActualizacion;
   ModelTasa? tasaActual;
+  ModelPreviousTasa? tasaPrevious;
+  String? fechaPrevia;
   bool cargandoTasa = false;
   bool bloqueado = false;
-  bool tasaPrevious = false;
 
   final usdController = TextEditingController();
   final vesController = TextEditingController();
@@ -45,6 +47,13 @@ class _TasaCalculatorState extends State<TasaCalculator> {
         final datosJson = jsonDecode(response.body);
         final current = datosJson['current'];
         final previous = datosJson['previous'];
+
+        if (previous != null) {
+          setState(() {
+            tasaPrevious = ModelPreviousTasa.fromMap(previous);
+            fechaPrevia = previous['date'];
+          });
+        }
 
         if (current != null) {
           setState(() {
