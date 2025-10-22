@@ -4,6 +4,7 @@ import 'package:calculator/core/styles.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:math_expressions/math_expressions.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -13,8 +14,36 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final List<String> historial = [];
+  @override
+  void initState() {
+    super.initState();
+    cargarHistorial();
+  }
+
+  Future<void> cargarHistorial() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      historial = prefs.getStringList('historial') ?? [];
+    });
+  }
+
+  void eliminarSeleccionados() {
+    final indices = seleccionados.toList()..sort((a, b) => b.compareTo(a));
+    for (final i in indices) {
+      historial.removeAt(i);
+    }
+    seleccionados.clear();
+    guardarHistorial(historial);
+    setState(() {});
+  }
+
+  List<String> historial = [];
   Set<int> seleccionados = {};
+
+  Future<void> guardarHistorial(List<String> historial) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('historial', historial);
+  }
 
   void mostrarHistorialModal() {
     showModalBottomSheet(
@@ -109,14 +138,7 @@ class _HomeState extends State<Home> {
                       ),
                       TextButton(
                         onPressed: () {
-                          setState(() {
-                            final indices = seleccionados.toList()
-                              ..sort((a, b) => b.compareTo(a));
-                            for (final i in indices) {
-                              historial.removeAt(i);
-                            }
-                            seleccionados.clear();
-                          });
+                          eliminarSeleccionados();
                           Navigator.pop(context);
                         },
                         child: const Text('Eliminar'),
@@ -439,6 +461,7 @@ class _HomeState extends State<Home> {
                               entrada,
                             ); // lo más reciente arriba
                           });
+                          guardarHistorial(historial);
                         }
 
                         try {
