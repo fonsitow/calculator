@@ -10,7 +10,7 @@ AppBar appBarCustom(String title, Icon icono, Color color, VoidCallback historia
         child: IconButton(onPressed: historial, icon: Icon(Icons.history)),
       ),
     ],
-    backgroundColor: color,
+    backgroundColor:  color,
     foregroundColor: Colors.white,
   );
 }

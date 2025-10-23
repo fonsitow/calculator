@@ -163,372 +163,343 @@ class _HomeState extends State<Home> {
     // Media Query
     final ancho = MediaQuery.of(context).size.width;
     final alto = MediaQuery.of(context).size.height;
+    double verticalPadding = alto * (alto >= 64 ? 0.08 : 0.06);
+    verticalPadding = verticalPadding.clamp(
+      8.0,
+      64.0,
+    ); // limita entre 8 y 32 pixeles
+
+    final List<Map<String, dynamic>> botones = [
+      {
+        'label': 'AC',
+        'style': StylesButton().opcion,
+        'textStyle': StylesButton.opcionText,
+        'onPressed': () => setState(() {
+          _input.clear();
+        }),
+      },
+      {
+        'label': '+/-',
+        'style': StylesButton().opcion,
+        'textStyle': StylesButton.opcionText,
+        'onPressed': () {
+          double? valor = double.tryParse(_input.text);
+          setState(() {
+            if (valor != null) {
+              valor = -valor!;
+              _input.text = valor.toString();
+            } else {
+              errorFunction();
+            }
+          });
+        },
+      },
+      {
+        'icon': Icon(Icons.percent),
+        'color': const Color.fromARGB(255, 151, 42, 235),
+        'style': StylesButton().icon,
+        'onPressed': () {
+          double? valor = double.tryParse(_input.text);
+          setState(() {
+            if (valor != null) {
+              double porcentaje = valor / 100;
+              _input.text = porcentaje.toString();
+            } else {
+              errorFunction();
+            }
+          });
+        },
+      },
+      {
+        'icon': Icon(CupertinoIcons.divide),
+        'color': const Color.fromARGB(255, 151, 42, 235),
+        'style': StylesButton().icon,
+        'onPressed': () {
+          setState(() {
+            try {
+              if (_input.text.characters.isEmpty ||
+                  _input.text.characters.last != '÷') {
+                _input.text += '÷';
+              }
+            } catch (e) {
+              errorFunction();
+            }
+          });
+        },
+      },
+      {
+        'label': '1',
+        'style': StylesButton().primary,
+        'textStyle': StylesButton.primaryText,
+        'onPressed': () => setState(() {
+          _input.text += '1';
+        }),
+      },
+      {
+        'label': '2',
+        'style': StylesButton().primary,
+        'textStyle': StylesButton.primaryText,
+        'onPressed': () => setState(() {
+          _input.text += '2';
+        }),
+      },
+      {
+        'label': '3',
+        'style': StylesButton().primary,
+        'textStyle': StylesButton.primaryText,
+        'onPressed': () => setState(() {
+          _input.text += '3';
+        }),
+      },
+      {
+        'icon': Icon(Icons.add),
+        'color': const Color.fromARGB(255, 151, 42, 235),
+        'style': StylesButton().icon,
+        'onPressed': () {
+          setState(() {
+            try {
+              if (_input.text.characters.last != '+') {
+                _input.text += '+';
+              } else {}
+            } catch (e) {
+              errorFunction();
+            }
+          });
+        },
+      },
+      {
+        'label': '4',
+        'style': StylesButton().primary,
+        'textStyle': StylesButton.primaryText,
+        'onPressed': () => setState(() {
+          _input.text += '4';
+        }),
+      },
+      {
+        'label': '5',
+        'style': StylesButton().primary,
+        'textStyle': StylesButton.primaryText,
+        'onPressed': () => setState(() {
+          _input.text += '5';
+        }),
+      },
+      {
+        'label': '6',
+        'style': StylesButton().primary,
+        'textStyle': StylesButton.primaryText,
+        'onPressed': () => setState(() {
+          _input.text += '6';
+        }),
+      },
+      {
+        'icon': Icon(Icons.remove),
+        'color': const Color.fromARGB(255, 151, 42, 235),
+        'style': StylesButton().icon,
+        'onPressed': () {
+          setState(() {
+            try {
+              if (_input.text.characters.last != '-') {
+                _input.text += '-';
+              } else {}
+            } catch (e) {
+              errorFunction();
+            }
+          });
+        },
+      },
+      {
+        'label': '7',
+        'style': StylesButton().primary,
+        'textStyle': StylesButton.primaryText,
+        'onPressed': () => setState(() {
+          _input.text += '7';
+        }),
+      },
+      {
+        'label': '8',
+        'style': StylesButton().primary,
+        'textStyle': StylesButton.primaryText,
+        'onPressed': () => setState(() {
+          _input.text += '8';
+        }),
+      },
+      {
+        'label': '9',
+        'style': StylesButton().primary,
+        'textStyle': StylesButton.primaryText,
+        'onPressed': () => setState(() {
+          _input.text += '9';
+        }),
+      },
+      {
+        'icon': Icon(CupertinoIcons.multiply),
+        'color': const Color.fromARGB(255, 151, 42, 235),
+        'style': StylesButton().icon,
+        'onPressed': () {
+          setState(() {
+            try {
+              if (_input.text.characters.last != '×') {
+                _input.text += '×';
+              } else {}
+            } catch (e) {
+              errorFunction();
+            }
+          });
+        },
+      },
+      {
+        'label': '.',
+        'style': StylesButton().secundary,
+        'textStyle': StylesButton.opcionText,
+        'onPressed': () => setState(() {
+          _input.text += '.';
+        }),
+      },
+      {
+        'label': '0',
+        'style': StylesButton().primary,
+        'textStyle': StylesButton.primaryText,
+        'onPressed': () => setState(() {
+          _input.text += '0';
+        }),
+      },
+      {
+        'icon': Icon(Icons.backspace_outlined),
+        'color': const Color.fromARGB(255, 151, 42, 235),
+        'style': StylesButton().icon,
+        'onPressed': () {
+          setState(() {
+            if (_input.text.isNotEmpty) {
+              _input.text = _input.text.substring(0, _input.text.length - 1);
+              // Mueve el cursor al final después de borrar
+              _input.selection = TextSelection.fromPosition(
+                TextPosition(offset: _input.text.length),
+              );
+            }
+          });
+        },
+      },
+      {
+        'icon': Icon(CupertinoIcons.equal),
+        'color': const Color.fromARGB(255, 151, 42, 235),
+        'style': StylesButton().icon,
+        'onPressed': () {
+          try {
+            final expresion = _input.text
+                .replaceAll('×', '*')
+                .replaceAll('÷', '/')
+                .replaceAll('−', '-');
+
+            final parser = Parser();
+            final exp = parser.parse(expresion);
+            final cm = ContextModel();
+            double result = exp.evaluate(EvaluationType.REAL, cm);
+
+            String resultado = result.toString();
+            if (resultado.endsWith('.0')) {
+              resultado = resultado.substring(0, resultado.length - 2);
+            }
+
+            setState(() {
+              _input.text = resultado;
+              _input.selection = TextSelection.fromPosition(
+                TextPosition(offset: _input.text.length),
+              );
+              final entrada = '$expresion = $resultado';
+              historial.insert(0, entrada);
+              guardarHistorial(historial);
+            });
+          } catch (e) {
+            errorFunction();
+          }
+        },
+      },
+    ];
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(172, 35, 35, 35),
       drawer: MenuLateral(title: 'Calculadora simple'),
       appBar: appBarCustom(
         'Calculadora simple',
-        Icon(Icons.calculate_outlined),
+        const Icon(Icons.calculate_outlined),
         const Color.fromARGB(57, 146, 146, 146),
         mostrarHistorialModal,
       ),
       body: SafeArea(
-        child: Center(
-          child: Column(
-            children: [
-              TextField(
-                readOnly: true,
-                controller: _input,
-                keyboardType: TextInputType.none,
-                showCursor: false,
-                style: TextStyle(
-                  fontSize: ancho * 0.09,
-                  color: const Color.fromARGB(139, 21, 21, 21),
-                  fontWeight: FontWeight.w500,
-                ),
-                textAlign: TextAlign.right,
-                decoration: InputDecoration(
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: alto * 0.05,
-                  ),
-                  filled: true,
-                  fillColor: const Color.fromARGB(57, 146, 146, 146),
-                  hintText: _mostrarError ? 'error' : '0',
-                  hintStyle: TextStyle(
-                    color: _mostrarError
-                        ? const Color.fromARGB(133, 244, 67, 54)
-                        : const Color.fromARGB(100, 0, 0, 0),
-                    fontSize: ancho * 0.09,
-                  ),
-                  counterText: '',
-                  border: OutlineInputBorder(borderSide: BorderSide.none),
-                ),
-              ),
-              GridView.count(
-                crossAxisCount: 4,
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                padding: EdgeInsets.all(16),
-                children: [
-                  IconButton.outlined(
-                    onPressed: () {
-                      setState(() {
-                        _input.clear();
-                      });
-                    },
-                    icon: Text('AC'),
-                    color: const Color.fromARGB(255, 106, 255, 146),
-                    style: StylesButton().opcion,
-                  ),
-
-                  IconButton.outlined(
-                    color: const Color.fromARGB(255, 106, 255, 146),
-                    onPressed: () {
-                      double? valor = double.tryParse(_input.text);
-                      if (valor != null) {
-                        valor = -valor;
-                        _input.text = valor.toString();
-                      } else {
-                        errorFunction();
-                      }
-                    },
-                    icon: Text('+/-'),
-                    style: StylesButton().opcion,
-                  ),
-
-                  IconButton.outlined(
-                    color: const Color.fromARGB(255, 151, 42, 235),
-                    onPressed: () {
-                      double? valor = double.tryParse(_input.text);
-                      if (valor != null) {
-                        double porcentaje = valor / 100;
-                        _input.text = porcentaje.toString();
-                      } else {
-                        errorFunction();
-                      }
-                    },
-                    icon: Icon(Icons.percent),
-                    style: StylesButton().icon,
-                  ),
-
-                  IconButton.outlined(
-                    color: const Color.fromARGB(255, 151, 42, 235),
-                    onPressed: () {
-                      try {
-                        if (_input.text.characters.last != '÷') {
-                          _input.text += '÷';
-                        } else {}
-                      } catch (e) {
-                        errorFunction();
-                      }
-                    },
-                    icon: Icon(CupertinoIcons.divide),
-                    style: StylesButton().icon,
-                  ),
-                  IconButton.outlined(
-                    onPressed: () {
-                      setState(() {
-                        _input.text += '1';
-                      });
-                    },
-                    icon: Text('1'),
-                    style: StylesButton().primary,
-                  ),
-
-                  IconButton.outlined(
-                    onPressed: () {
-                      setState(() {
-                        _input.text += '2';
-                      });
-                    },
-                    icon: Text('2'),
-                    style: StylesButton().primary,
-                  ),
-
-                  IconButton.outlined(
-                    onPressed: () {
-                      setState(() {
-                        _input.text += '3';
-                      });
-                    },
-                    icon: Text('3'),
-                    style: StylesButton().primary,
-                  ),
-
-                  IconButton.outlined(
-                    color: const Color.fromARGB(255, 151, 42, 235),
-                    onPressed: () {
-                      setState(() {
-                        try {
-                          if (_input.text.characters.last != '+') {
-                            _input.text += '+';
-                          } else {}
-                        } catch (e) {
-                          errorFunction();
-                        }
-                      });
-                    },
-                    icon: Icon(Icons.add),
-                    style: StylesButton().icon,
-                  ),
-                  IconButton.outlined(
-                    onPressed: () {
-                      setState(() {
-                        _input.text += '4';
-                      });
-                    },
-                    icon: Text('4'),
-                    style: StylesButton().primary,
-                  ),
-
-                  IconButton.outlined(
-                    onPressed: () {
-                      setState(() {
-                        _input.text += '5';
-                      });
-                    },
-                    icon: Text('5'),
-                    style: StylesButton().primary,
-                  ),
-
-                  IconButton.outlined(
-                    onPressed: () {
-                      setState(() {
-                        _input.text += '6';
-                      });
-                    },
-                    icon: Text('6'),
-                    style: StylesButton().primary,
-                  ),
-                  IconButton.outlined(
-                    color: const Color.fromARGB(255, 151, 42, 235),
-                    onPressed: () {
-                      try {
-                        if (_input.text.characters.last != '-') {
-                          _input.text += '-';
-                        } else {}
-                      } catch (e) {
-                        errorFunction();
-                      }
-                    },
-                    icon: Icon(Icons.remove),
-                    style: StylesButton().icon,
-                  ),
-                  IconButton.outlined(
-                    onPressed: () {
-                      setState(() {
-                        _input.text += '7';
-                      });
-                    },
-                    icon: Text('7'),
-                    style: StylesButton().primary,
-                  ),
-
-                  IconButton.outlined(
-                    onPressed: () {
-                      setState(() {
-                        _input.text += '8';
-                      });
-                    },
-                    icon: Text('8'),
-                    style: StylesButton().primary,
-                  ),
-
-                  IconButton.outlined(
-                    onPressed: () {
-                      setState(() {
-                        _input.text += '9';
-                      });
-                    },
-                    icon: Text('9'),
-                    style: StylesButton().primary,
-                  ),
-
-                  IconButton.outlined(
-                    color: const Color.fromARGB(255, 151, 42, 235),
-                    onPressed: () {
-                      try {
-                        if (_input.text.characters.last != '×') {
-                          _input.text += '×';
-                        }
-                      } catch (e) {
-                        errorFunction();
-                      }
-                    },
-                    icon: Icon(CupertinoIcons.multiply),
-                    style: StylesButton().icon,
-                  ),
-                  IconButton.outlined(
-                    color: const Color.fromARGB(255, 106, 255, 146),
-                    onPressed: () {
-                      setState(() {
-                        _input.text += '.';
-                      });
-                    },
-                    icon: Text(
-                      '.',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
+        child: Column(
+          children: [
+            // Visor de resultados que se adapta al contenido
+            Expanded(
+              flex: 2,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                alignment: Alignment.bottomRight,
+                color: const Color.fromARGB(57, 146, 146, 146),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    _mostrarError
+                        ? 'error'
+                        : _input.text.isEmpty
+                        ? '0'
+                        : _input.text,
+                    style: TextStyle(
+                      fontSize: MediaQuery.of(context).size.width * 0.11,
+                      color: _mostrarError
+                          ? const Color.fromARGB(133, 244, 67, 54)
+                          : const Color.fromARGB(138, 18, 18, 18),
+                      fontWeight: FontWeight.w500,
                     ),
-                    style: StylesButton().secundary,
                   ),
-                  IconButton.outlined(
-                    onPressed: () {
-                      setState(() {
-                        _input.text += '0';
-                      });
-                    },
-                    icon: Text('0'),
-                    style: StylesButton().primary,
-                  ),
-                  IconButton.outlined(
-                    color: const Color.fromARGB(255, 151, 42, 235),
-                    onPressed: () {
-                      setState(() {
-                        if (_input.text.isNotEmpty) {
-                          _input.text = _input.text.substring(
-                            0,
-                            _input.text.length - 1,
-                          );
-                          // Mueve el cursor al final después de borrar
-                          _input.selection = TextSelection.fromPosition(
-                            TextPosition(offset: _input.text.length),
-                          );
-                        }
-                      });
-                    },
-                    icon: Icon(Icons.backspace_outlined, size: 20,),
-                    style: StylesButton().icon,
-                  ),
-                  IconButton.outlined(
-                    color: const Color.fromARGB(255, 151, 42, 235),
-                    onPressed: () {
-                      setState(() {
-                        void guardarEnHistorial(
-                          String expresion,
-                          String resultado,
-                        ) {
-                          final entrada = '$expresion = $resultado';
-                          setState(() {
-                            historial.insert(
-                              0,
-                              entrada,
-                            ); // lo más reciente arriba
-                          });
-                          guardarHistorial(historial);
-                        }
-
-                        try {
-                          String traducirParaEvaluar(String expresionVisual) {
-                            return expresionVisual
-                                .replaceAll('×', '*')
-                                .replaceAll('÷', '/')
-                                .replaceAll('−', '-')
-                                .replaceAll('+', '+');
-                          }
-
-                          String expresion = traducirParaEvaluar(_input.text);
-
-                          // ignore: deprecated_member_use
-                          Parser parser = Parser();
-                          Expression exp = parser.parse(expresion);
-                          ContextModel cm = ContextModel();
-                          double result = exp.evaluate(EvaluationType.REAL, cm);
-
-                          // ✅ Verifica si el resultado es inválido
-                          if (result.isInfinite || result.isNaN) {
-                            errorFunction();
-                            return;
-                          }
-                          
-                          _input.text = result.toString();
-
-                          if (_input.text.endsWith('.0')) {
-                            _input.text = _input.text.substring(
-                              0,
-                              _input.text.length - 2,
-                            );
-
-                            // ✅ Aquí defines la variable resultado
-                            String resultado = result.toString();
-
-                            // ✅ Formatea si termina en .0
-                            if (resultado.endsWith('.0')) {
-                              resultado = resultado.substring(
-                                0,
-                                resultado.length - 2,
-                              );
-                            }
-
-                            _input.text = resultado;
-                            _input.selection = TextSelection.fromPosition(
-                              TextPosition(offset: _input.text.length),
-                            );
-
-                            guardarEnHistorial(expresion, resultado);
-                          }
-                        } catch (e) {
-                          errorFunction();
-                        }
-                      });
-                    },
-                    icon: Icon(CupertinoIcons.equal),
-                    style: StylesButton().icon,
-                  ),
-                ],
+                ),
               ),
-            ],
-          ),
+            ),
+
+            // Panel de botones que ocupa el resto del espacio
+            Expanded(
+              flex: 5,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final crossAxisCount = 4;
+                    final spacing = 12.0;
+                    final padding = 8.0;
+                    final rowCount = (botones.length / crossAxisCount).ceil();
+
+                    final buttonWidth =
+                        (constraints.maxWidth -
+                            (spacing * (crossAxisCount - 1)) -
+                            (padding * 2)) /
+                        crossAxisCount;
+                    final buttonHeight =
+                        (constraints.maxHeight -
+                            (spacing * (rowCount - 1)) -
+                            (padding * 2)) /
+                        rowCount;
+                    final childAspectRatio = buttonWidth / buttonHeight;
+
+                    return GridView.count(
+                      crossAxisCount: crossAxisCount,
+                      mainAxisSpacing: spacing,
+                      crossAxisSpacing: spacing,
+                      padding: EdgeInsets.all(padding),
+                      physics: const NeverScrollableScrollPhysics(),
+                      childAspectRatio: childAspectRatio,
+                      children: botones.map(buildButton).toList(),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
+
 
   void errorFunction() {
     setState(() {
@@ -543,3 +514,26 @@ class _HomeState extends State<Home> {
     });
   }
 }
+
+  Widget buildButton(Map<String, dynamic> boton) {
+  final ButtonStyle? buttonStyle = boton['style'] as ButtonStyle?;
+  final Color? color = boton['color'] as Color?;
+  final VoidCallback? onPressed = boton['onPressed'] as VoidCallback?;
+
+  final Widget child = boton.containsKey('icon')
+      ? IconTheme(
+          data: IconThemeData(size: 24, color: color),
+          child: boton['icon'] as Widget,
+        )
+      : Text(
+          boton['label'] ?? '',
+          style: (boton['textStyle'] as TextStyle?)?.copyWith(color: color) ??
+              TextStyle(color: color),
+        );
+
+  return TextButton(
+    onPressed: onPressed,
+    style: buttonStyle,
+    child: child,
+  );
+  }
