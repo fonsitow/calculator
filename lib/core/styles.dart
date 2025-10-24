@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:flutter/material.dart';
-
 class StylesButton {
   // Colores comunes
   static const Color white = Color.fromARGB(255, 255, 255, 255);

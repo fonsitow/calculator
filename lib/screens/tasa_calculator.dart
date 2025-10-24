@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:calculator/components/appbar.dart';
 import 'package:calculator/components/drawer.dart';
+import 'package:calculator/models/porcentaje_cambio.dart';
 import 'package:calculator/models/tasa.dart';
 import 'package:calculator/models/tasa_previous.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,7 @@ class TasaCalculator extends StatefulWidget {
 
 class _TasaCalculatorState extends State<TasaCalculator> {
   final NumberFormat formatter = NumberFormat.decimalPattern();
+  bool mostrarTexto = false;
   String monedaSeleccionada = 'USD';
   String? fechaActualizacion;
   ModelTasa? tasaActual;
@@ -24,6 +26,7 @@ class _TasaCalculatorState extends State<TasaCalculator> {
   String? fechaPrevia;
   bool cargandoTasa = false;
   bool bloqueado = false;
+  ModelPercentaje? porcentajeCambio;
 
   final usdController = TextEditingController();
   final vesController = TextEditingController();
@@ -47,11 +50,18 @@ class _TasaCalculatorState extends State<TasaCalculator> {
         final datosJson = jsonDecode(response.body);
         final current = datosJson['current'];
         final previous = datosJson['previous'];
+        final percentaje = datosJson['changePercentage'];
 
         if (previous != null) {
           setState(() {
             tasaPrevious = ModelPreviousTasa.fromMap(previous);
             fechaPrevia = previous['date'];
+          });
+        }
+
+        if (percentaje != null) {
+          setState(() {
+            porcentajeCambio = ModelPercentaje.fromMap(percentaje);
           });
         }
 
@@ -112,217 +122,268 @@ class _TasaCalculatorState extends State<TasaCalculator> {
         'Calculadora Cambio',
         Icon(Icons.monetization_on),
         Colors.transparent,
-        (){}
+        () {},
       ),
       drawer: MenuLateral(title: 'Calculadora De Cambio'),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // ? LISTA DE MONEDAS
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(150, 50, 50, 50),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color.fromARGB(147, 135, 255, 129),
-                  width: 1.5,
-                ),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: monedaSeleccionada,
-                  isExpanded: true,
-                  dropdownColor: const Color.fromARGB(221, 40, 40, 40),
-                  icon: Icon(
-                    monedaSeleccionada == 'USD'
-                        ? Icons.arrow_drop_down
-                        : Icons.arrow_drop_up,
-                    color: const Color.fromARGB(147, 135, 255, 129),
+      body: ListView(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // ? LISTA DE MONEDAS
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
                   ),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  items: ['USD', 'EUR'].map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Row(
-                        children: [
-                          Icon(
-                            value == 'USD' ? Icons.attach_money : Icons.euro,
-                            color: const Color.fromARGB(147, 135, 255, 129),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(value),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      monedaSeleccionada = value!;
-                      recalcularDesdeUSD(usdController.text);
-                    });
-                  },
-                ),
-              ),
-            ),
-
-            // * Carta de tasa actual
-            SizedBox(height: 12),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white10,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.monetization_on_outlined,
-                    color: const Color.fromARGB(147, 135, 255, 129),
-                  ),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      tasaSeleccionada > 0
-                          ? 'Tasa actual: ${tasaSeleccionada.toStringAsFixed(2)} Bs = 1 $monedaSeleccionada'
-                          : 'Tasa no cargada aún',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  BotonRecargaTasa(onRecargar: cargarTasaDelDia),
-                ],
-              ),
-            ),
-            if (fechaActualizacion != null)
-              Padding(
-                padding: EdgeInsets.only(top: 8.0),
-                child: Container(
-                  alignment: Alignment(-1, -2),
-                  child: Text(
-                    'Actualizado: $fechaActualizacion',
-                    style: TextStyle(
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(150, 50, 50, 50),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
                       color: const Color.fromARGB(147, 135, 255, 129),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: monedaSeleccionada,
+                      isExpanded: true,
+                      dropdownColor: const Color.fromARGB(221, 40, 40, 40),
+                      icon: Icon(
+                        monedaSeleccionada == 'USD'
+                            ? Icons.arrow_drop_down
+                            : Icons.arrow_drop_up,
+                        color: const Color.fromARGB(147, 135, 255, 129),
+                      ),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      items: ['USD', 'EUR'].map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Row(
+                            children: [
+                              Icon(
+                                value == 'USD'
+                                    ? Icons.attach_money
+                                    : Icons.euro,
+                                color: const Color.fromARGB(147, 135, 255, 129),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(value),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          monedaSeleccionada = value!;
+                          recalcularDesdeUSD(usdController.text);
+                        });
+                      },
                     ),
                   ),
                 ),
-              ),
-            SizedBox(height: 16),
 
-            // * RECUADROS DE CALCULO
-            TextField(
-              showCursor: false,
-              autocorrect: true,
-              inputFormatters: [Formatter()],
-              style: TextStyle(color: Colors.white),
-              controller: usdController,
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-              decoration: InputDecoration(
-                prefixText: monedaSeleccionada == 'USD' ? '\$  ' : '€  ',
-                prefixStyle: TextStyle(
-                  color: Color.fromARGB(147, 135, 255, 129),
-                  fontSize: 16,
-                ),
-                hint: Text(
-                  '0',
-                  style: TextStyle(fontSize: 18, color: Colors.white),
-                ),
-                labelText: 'USD/EUR',
-                labelStyle: TextStyle(color: Colors.white),
-                filled: true,
-                fillColor: Colors.white10,
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Colors.green
-                  )
-                ),
-                suffixIcon: IconButton(
-                  icon: const Icon(
-                    Icons.copy,
-                    color: Color.fromARGB(118, 255, 255, 255),
+                // * Carta de tasa actual
+                SizedBox(height: 12),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white10,
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  tooltip: 'Copiar al portapapeles',
-                  onPressed: () {
-                    final texto = usdController.text;
-                    if (texto.isNotEmpty) {
-                      Clipboard.setData(ClipboardData(text: texto));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Copiado al portapapeles'),
-                          duration: Duration(seconds: 1),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.monetization_on_outlined,
+                        color: const Color.fromARGB(147, 135, 255, 129),
+                      ),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          tasaSeleccionada > 0
+                              ? 'Tasa actual: ${tasaSeleccionada.toStringAsFixed(2)} Bs = 1 $monedaSeleccionada'
+                              : 'Tasa no cargada aún',
+                          style: TextStyle(color: Colors.white),
                         ),
-                      );
-                    }
+                      ),
+                      BotonRecargaTasa(onRecargar: cargarTasaDelDia),
+                    ],
+                  ),
+                ),
+                if (fechaActualizacion != null)
+                  Padding(
+                    padding: EdgeInsets.only(top: 8.0),
+                    child: Container(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Actualizado: $fechaActualizacion',
+                        style: TextStyle(
+                          color: const Color.fromARGB(147, 135, 255, 129),
+                        ),
+                      ),
+                    ),
+                  ),
+                SizedBox(height: 16),
+
+                // * RECUADROS DE CALCULO
+                TextField(
+                  showCursor: false,
+                  autocorrect: true,
+                  inputFormatters: [Formatter()],
+                  style: TextStyle(color: Colors.white),
+                  controller: usdController,
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    prefixText: monedaSeleccionada == 'USD' ? '\$  ' : '€  ',
+                    prefixStyle: TextStyle(
+                      color: Color.fromARGB(147, 135, 255, 129),
+                      fontSize: 16,
+                    ),
+                    hint: Text(
+                      '0',
+                      style: TextStyle(fontSize: 18, color: Colors.white),
+                    ),
+                    labelText: 'USD/EUR',
+                    labelStyle: TextStyle(color: Colors.white),
+                    filled: true,
+                    fillColor: Colors.white10,
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.green),
+                    ),
+                    suffixIcon: IconButton(
+                      icon: const Icon(
+                        Icons.copy,
+                        color: Color.fromARGB(118, 255, 255, 255),
+                      ),
+                      tooltip: 'Copiar al portapapeles',
+                      onPressed: () {
+                        final texto = usdController.text;
+                        if (texto.isNotEmpty) {
+                          Clipboard.setData(ClipboardData(text: texto));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Copiado al portapapeles'),
+                              duration: Duration(seconds: 1),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                  onChanged: (valor) {
+                    final limpio = valor.replaceAll(',', '');
+                    recalcularDesdeUSD(limpio);
                   },
                 ),
-              ),
-              onChanged: (valor) {
-                final limpio = valor.replaceAll(',', '');
-                recalcularDesdeUSD(limpio);
-              },
-            ),
 
-            SizedBox(height: 12),
-            TextField(
-              showCursor: false,
-              autocorrect: true,
-              inputFormatters: [Formatter()],
-              style: TextStyle(color: Colors.white),
-              controller: vesController,
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-              decoration: InputDecoration(
-                prefixText: 'Bs  ',
-                prefixStyle: TextStyle(
-                  color: Color.fromARGB(147, 135, 255, 129),
-                  fontSize: 16,
-                ),
-                hint: Text(
-                  '0',
-                  style: TextStyle(fontSize: 18, color: Colors.white),
-                ),
-                labelText: 'Bs',
-                labelStyle: TextStyle(color: Colors.white),
-                filled: true,
-                fillColor: Colors.white10,
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Colors.green
-                  )
-                ),
-                suffixIcon: IconButton(
-                  icon: const Icon(
-                    Icons.copy,
-                    color: Color.fromARGB(118, 255, 255, 255),
+                SizedBox(height: 12),
+                TextField(
+                  showCursor: false,
+                  autocorrect: true,
+                  inputFormatters: [Formatter()],
+                  style: TextStyle(color: Colors.white),
+                  controller: vesController,
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    prefixText: 'Bs  ',
+                    prefixStyle: TextStyle(
+                      color: Color.fromARGB(147, 135, 255, 129),
+                      fontSize: 16,
+                    ),
+                    hint: Text(
+                      '0',
+                      style: TextStyle(fontSize: 18, color: Colors.white),
+                    ),
+                    labelText: 'Bs',
+                    labelStyle: TextStyle(color: Colors.white),
+                    filled: true,
+                    fillColor: Colors.white10,
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.green),
+                    ),
+                    suffixIcon: IconButton(
+                      icon: const Icon(
+                        Icons.copy,
+                        color: Color.fromARGB(118, 255, 255, 255),
+                      ),
+                      tooltip: 'Copiar al portapapeles',
+                      onPressed: () {
+                        final texto = vesController.text;
+                        if (texto.isNotEmpty) {
+                          Clipboard.setData(ClipboardData(text: texto));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Copiado al portapapeles'),
+                              duration: Duration(seconds: 1),
+                            ),
+                          );
+                        }
+                      },
+                    ),
                   ),
-                  tooltip: 'Copiar al portapapeles',
-                  onPressed: () {
-                    final texto = vesController.text;
-                    if (texto.isNotEmpty) {
-                      Clipboard.setData(ClipboardData(text: texto));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Copiado al portapapeles'),
-                          duration: Duration(seconds: 1),
-                        ),
-                      );
-                    }
+                  onChanged: (valor) {
+                    final limpio = valor.replaceAll(',', '');
+                    recalcularDesdeVES(limpio);
                   },
                 ),
-              ),
-              onChanged: (valor) {
-                final limpio = valor.replaceAll(',', '');
-                recalcularDesdeVES(limpio);
-              },
+                //Precios y fechas previas
+                Container(
+                  alignment: Alignment.centerLeft,
+                  padding: EdgeInsets.only(top: 16),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        mostrarTexto = !mostrarTexto;
+                      });
+                    },
+                    child: Text(
+                      'Ver fechas y precios previos',
+                      style: TextStyle(color: Colors.green),
+                    ),
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(height: 8),
+                    if (mostrarTexto) ...[
+                      Text(
+                        'Fecha: $fechaPrevia',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: const Color.fromARGB(186, 76, 175, 79),
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        monedaSeleccionada == 'USD'
+                            ? 'Tasa: ${(tasaPrevious!.usd).toString()} USD'
+                            : 'Tasa: ${tasaPrevious!.eur.toString()} EUR',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: const Color.fromARGB(172, 76, 175, 79),
+                        ),
+                      ),
+                      Text(
+                        'Porcentaje de cambio: ${porcentajeCambio != null ? (monedaSeleccionada == 'USD' ? porcentajeCambio!.usd.toStringAsFixed(2) : porcentajeCambio!.eur.toStringAsFixed(2)) : 'N/A'} %',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: const Color.fromARGB(172, 76, 175, 79),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
             ),
-
-            //Precios y fechas previas
-            
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

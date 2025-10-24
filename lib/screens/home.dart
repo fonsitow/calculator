@@ -60,7 +60,7 @@ class _HomeState extends State<Home> {
           builder: (context, setModalState) {
             return Container(
               constraints: BoxConstraints(
-                maxHeight: alto * 0.7,
+                maxHeight: alto * 0.6,
                 minHeight: alto * 0.4,
               ),
               padding: const EdgeInsets.all(8),
@@ -69,7 +69,7 @@ class _HomeState extends State<Home> {
                   Text(
                     'Historial de cálculos',
                     style: TextStyle(
-                      fontSize: ancho * 0.05,
+                      fontSize: ancho * 0.04,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -99,7 +99,7 @@ class _HomeState extends State<Home> {
                             ),
                             title: Text(
                               item,
-                              style: TextStyle(fontSize: ancho * 0.04),
+                              style: TextStyle(fontSize: ancho * 0.05),
                             ),
                             onTap: () {
                               setState(() {
@@ -114,9 +114,10 @@ class _HomeState extends State<Home> {
                         },
                       ),
                     ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    spacing: 0.5,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       TextButton(
                         onPressed: () {
@@ -126,7 +127,7 @@ class _HomeState extends State<Home> {
                             );
                           });
                         },
-                        child: const Text('Seleccionar todos'),
+                        child: const Text('seleccionar todo'),
                       ),
                       TextButton(
                         onPressed: () {
@@ -134,14 +135,14 @@ class _HomeState extends State<Home> {
                             seleccionados.clear();
                           });
                         },
-                        child: const Text('Deseleccionar'),
+                        child: const Text('desceleccionar'),
                       ),
                       TextButton(
                         onPressed: () {
                           eliminarSeleccionados();
                           Navigator.pop(context);
                         },
-                        child: const Text('Eliminar'),
+                        child: const Text('eliminar'),
                       ),
                     ],
                   ),
