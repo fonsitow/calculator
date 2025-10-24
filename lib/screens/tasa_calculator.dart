@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:calculator/components/appbar.dart';
 import 'package:calculator/components/drawer.dart';
+import 'package:calculator/components/historial_modal.dart';
 import 'package:calculator/models/porcentaje_cambio.dart';
 import 'package:calculator/models/tasa.dart';
 import 'package:calculator/models/tasa_previous.dart';
@@ -17,6 +18,14 @@ class TasaCalculator extends StatefulWidget {
 }
 
 class _TasaCalculatorState extends State<TasaCalculator> {
+  void mostrarModalHistorial(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => const ModalHistory(),
+    );
+  }
+
   final NumberFormat formatter = NumberFormat.decimalPattern();
   bool mostrarTexto = false;
   String monedaSeleccionada = 'USD';
@@ -122,7 +131,7 @@ class _TasaCalculatorState extends State<TasaCalculator> {
         'Calculadora Cambio',
         Icon(Icons.monetization_on),
         Colors.transparent,
-        () {},
+        () => mostrarModalHistorial(context),
       ),
       drawer: MenuLateral(title: 'Calculadora De Cambio'),
       body: ListView(
@@ -161,15 +170,19 @@ class _TasaCalculatorState extends State<TasaCalculator> {
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
-                      items: ['USD', 'EUR'].map((String value) {
+                      items: ['USD', 'EUR', 'PERSONALIZADO'].map((
+                        String value,
+                      ) {
                         return DropdownMenuItem<String>(
                           value: value,
                           child: Row(
                             children: [
                               Icon(
-                                value == 'USD'
+                              value == 'USD'
                                     ? Icons.attach_money
-                                    : Icons.euro,
+                                    : (value == 'EUR')
+                                    ? Icons.euro
+                                    : Icons.person,
                                 color: const Color.fromARGB(147, 135, 255, 129),
                               ),
                               const SizedBox(width: 8),
@@ -280,7 +293,6 @@ class _TasaCalculatorState extends State<TasaCalculator> {
                     recalcularDesdeUSD(limpio);
                   },
                 ),
-
                 SizedBox(height: 12),
                 TextField(
                   showCursor: false,
@@ -342,7 +354,9 @@ class _TasaCalculatorState extends State<TasaCalculator> {
                       });
                     },
                     child: Text(
-                      'Ver fechas y precios previos',
+                      mostrarTexto
+                          ? 'Ocultar fechas y precios previos ▲'
+                          : 'Ver fechas y precios previos ▼',
                       style: TextStyle(color: Colors.green),
                     ),
                   ),
@@ -352,7 +366,7 @@ class _TasaCalculatorState extends State<TasaCalculator> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     SizedBox(height: 8),
-                    if (mostrarTexto) ...[
+                    if (mostrarTexto && tasaPrevious != null) ...[
                       Text(
                         'Fecha: $fechaPrevia',
                         style: TextStyle(
@@ -360,11 +374,10 @@ class _TasaCalculatorState extends State<TasaCalculator> {
                           color: const Color.fromARGB(186, 76, 175, 79),
                         ),
                       ),
-                      SizedBox(height: 4),
                       Text(
                         monedaSeleccionada == 'USD'
-                            ? 'Tasa: ${(tasaPrevious!.usd).toString()} USD'
-                            : 'Tasa: ${tasaPrevious!.eur.toString()} EUR',
+                            ? 'Tasa: ${(tasaPrevious!.usd).toStringAsFixed(2)} USD'
+                            : 'Tasa: ${tasaPrevious!.eur.toStringAsFixed(2)} EUR',
                         style: TextStyle(
                           fontSize: 14,
                           color: const Color.fromARGB(172, 76, 175, 79),

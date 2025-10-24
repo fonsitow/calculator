@@ -162,6 +162,7 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     // Media Query
+    // ignore: unused_local_variable
     final ancho = MediaQuery.of(context).size.width;
     final alto = MediaQuery.of(context).size.height;
     double verticalPadding = alto * (alto >= 64 ? 0.08 : 0.06);
