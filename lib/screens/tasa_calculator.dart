@@ -19,11 +19,11 @@ class TasaCalculator extends StatefulWidget {
 
 class _TasaCalculatorState extends State<TasaCalculator> {
   void mostrarModalHistorial(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => const ModalHistory(),
-    );
+  showModalBottomSheet(
+  context: context,
+  isScrollControlled: true,
+  builder: (context) => const ModalHistory(),
+);
   }
 
   final NumberFormat formatter = NumberFormat.decimalPattern();
@@ -39,6 +39,7 @@ class _TasaCalculatorState extends State<TasaCalculator> {
 
   final usdController = TextEditingController();
   final vesController = TextEditingController();
+  final personController = TextEditingController();
 
   @override
   void initState() {
@@ -123,6 +124,15 @@ class _TasaCalculatorState extends State<TasaCalculator> {
     }
   }
 
+  void cambioDeTasa() {
+    if (personController.text.isNotEmpty) {
+      setState(() {
+        tasaActual!.usd = double.tryParse(personController.text)!;
+        tasaActual!.eur = double.tryParse(personController.text)!;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -178,7 +188,7 @@ class _TasaCalculatorState extends State<TasaCalculator> {
                           child: Row(
                             children: [
                               Icon(
-                              value == 'USD'
+                                value == 'USD'
                                     ? Icons.attach_money
                                     : (value == 'EUR')
                                     ? Icons.euro
@@ -228,7 +238,8 @@ class _TasaCalculatorState extends State<TasaCalculator> {
                     ],
                   ),
                 ),
-                if (fechaActualizacion != null)
+                if (fechaActualizacion != null &&
+                    monedaSeleccionada != 'PERSONALIZADO')
                   Padding(
                     padding: EdgeInsets.only(top: 8.0),
                     child: Container(
@@ -243,6 +254,61 @@ class _TasaCalculatorState extends State<TasaCalculator> {
                   ),
                 SizedBox(height: 16),
 
+                if (monedaSeleccionada == 'PERSONALIZADO') ...[
+                  TextField(
+                    showCursor: false,
+                    autocorrect: true,
+                    style: TextStyle(color: Colors.white),
+                    controller: personController,
+                    maxLength: 3,
+                    keyboardType: TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: InputDecoration(
+                      counterText: '',
+                      prefixText: '\$ ',
+                      prefixStyle: TextStyle(
+                        color: Color.fromARGB(147, 135, 255, 129),
+                        fontSize: 16,
+                      ),
+                      hint: Text(
+                        '0',
+                        style: TextStyle(fontSize: 18, color: Colors.white),
+                      ),
+                      labelText: 'PERSONALIZADO',
+                      labelStyle: TextStyle(color: Colors.white),
+                      filled: true,
+                      fillColor: Colors.white10,
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.green),
+                      ),
+                      suffixIcon: IconButton(
+                        icon: const Icon(
+                          Icons.copy,
+                          color: Color.fromARGB(118, 255, 255, 255),
+                        ),
+                        tooltip: 'Copiar al portapapeles',
+                        onPressed: () {
+                          final texto = personController.text;
+                          if (texto.isNotEmpty) {
+                            Clipboard.setData(ClipboardData(text: texto));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Copiado al portapapeles'),
+                                duration: Duration(seconds: 1),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                    onChanged: (value) {
+                      cambioDeTasa();
+                    },
+                  ),
+                  SizedBox(height: 12),
+                ],
+
                 // * RECUADROS DE CALCULO
                 TextField(
                   showCursor: false,
@@ -252,7 +318,11 @@ class _TasaCalculatorState extends State<TasaCalculator> {
                   controller: usdController,
                   keyboardType: TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
-                    prefixText: monedaSeleccionada == 'USD' ? '\$  ' : '€  ',
+                    prefixText: monedaSeleccionada == 'USD'
+                        ? '\$  '
+                        : monedaSeleccionada == 'EUR'
+                        ? '€ '
+                        : '& ',
                     prefixStyle: TextStyle(
                       color: Color.fromARGB(147, 135, 255, 129),
                       fontSize: 16,
@@ -344,29 +414,32 @@ class _TasaCalculatorState extends State<TasaCalculator> {
                   },
                 ),
                 //Precios y fechas previas
-                Container(
-                  alignment: Alignment.centerLeft,
-                  padding: EdgeInsets.only(top: 16),
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        mostrarTexto = !mostrarTexto;
-                      });
-                    },
-                    child: Text(
-                      mostrarTexto
-                          ? 'Ocultar fechas y precios previos ▲'
-                          : 'Ver fechas y precios previos ▼',
-                      style: TextStyle(color: Colors.green),
+                if (monedaSeleccionada != 'PERSONALIZADO')
+                  Container(
+                    alignment: Alignment.centerLeft,
+                    padding: EdgeInsets.only(top: 16),
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          mostrarTexto = !mostrarTexto;
+                        });
+                      },
+                      child: Text(
+                        mostrarTexto
+                            ? 'Ocultar fechas y precios previos ▲'
+                            : 'Ver fechas y precios previos ▼',
+                        style: TextStyle(color: Colors.green),
+                      ),
                     ),
                   ),
-                ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     SizedBox(height: 8),
-                    if (mostrarTexto && tasaPrevious != null) ...[
+                    if (mostrarTexto &&
+                        tasaPrevious != null &&
+                        monedaSeleccionada != 'PERSONALIZADO') ...[
                       Text(
                         'Fecha: $fechaPrevia',
                         style: TextStyle(

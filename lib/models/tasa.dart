@@ -2,8 +2,8 @@ import 'dart:convert';
 
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 class ModelTasa {
-  final double usd;
-  final double eur;
+  double usd;
+  double eur;
   final String date;
 
   ModelTasa({required this.usd, required this.eur, required this.date});

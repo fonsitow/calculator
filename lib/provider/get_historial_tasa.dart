@@ -11,8 +11,9 @@ Future<List<TasaHistory>> getHistory() async {
 
   if (response.statusCode == 200) {
     final datosJson = jsonDecode(response.body);
+    final rate = datosJson['rates'];
 
-    for (var item in datosJson) {
+    for (var item in rate) {
       historial.add(
         TasaHistory(
           date: item['date'].toString(),
